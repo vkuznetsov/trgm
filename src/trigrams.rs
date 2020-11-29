@@ -61,13 +61,15 @@ impl Trigram {
         v.push_str(&value.to_lowercase());
         v.push_str(DEL);
 
-        if v.len() < 3 {
+        let char_vec = v.chars().collect::<Vec<_>>();
+
+        if char_vec.len() < 3 {
             vec![]
-        } else if v.len() == 3 {
+        } else if char_vec.len() == 3 {
             vec![Trigram(v)]
         } else {
-            (0..v.len() - 2)
-                .map(|i| Trigram(v[i..i + 3].to_string()))
+            (0..char_vec.len() - 2)
+                .map(|i| Trigram(char_vec[i..i + 3].iter().collect()))
                 .collect()
         }
     }
@@ -122,13 +124,12 @@ mod test {
     #[test]
     fn extract_trigrams_test() {
         let s = "Hello";
-        let actual = Trigram::extract(s);
         let expected: Vec<Trigram> = vec!["$he", "hel", "ell", "llo", "lo$"]
             .iter()
             .map(|s| Trigram(s.to_string()))
             .collect();
 
-        assert_eq!(actual, expected);
+        assert_eq!(Trigram::extract(s), expected);
     }
 
     #[test]
@@ -139,6 +140,17 @@ mod test {
     #[test]
     fn extract_trigrams_from_one_symbol_string_test() {
         assert_eq!(Trigram::extract("@"), vec![Trigram("$@$".to_string())]);
+    }
+
+    #[test]
+    fn extract_trigrams_from_multibyte_string_test() {
+        let s = "Привет";
+        let expected: Vec<Trigram> = vec!["$пр", "при", "рив", "иве", "вет", "ет$"]
+            .iter()
+            .map(|s| Trigram(s.to_string()))
+            .collect();
+
+        assert_eq!(Trigram::extract(s), expected);
     }
 
     #[test]
